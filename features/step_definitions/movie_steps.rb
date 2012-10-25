@@ -4,6 +4,7 @@ Given /the following movies exist/ do |movies_table|
   movies_table.hashes.each do |movie|
     # each returned element will be a hash whose key is the table header.
     # you should arrange to add that movie to the database here.
+    Movie.create!(movie)
   end
   flunk "Unimplemented"
 end
@@ -14,6 +15,7 @@ end
 Then /I should see "(.*)" before "(.*)"/ do |e1, e2|
   #  ensure that that e1 occurs before e2.
   #  page.content  is the entire content of the page as a string.
+    page.body.should match /#{e1}.*#{e2}/m
   flunk "Unimplemented"
 end
 
@@ -25,4 +27,21 @@ When /I (un)?check the following ratings: (.*)/ do |uncheck, rating_list|
   # HINT: use String#split to split up the rating_list, then
   #   iterate over the ratings and reuse the "When I check..." or
   #   "When I uncheck..." steps in lines 89-95 of web_steps.rb
+  rating_list.split(/,\s*/).each do |rating|
+   field = "ratings_#{rating}"
+     if is_uncheck
+      uncheck(field)
+     else
+      check(field)
+     end
+  end
 end
+
+Then /I should see (.*) of the movies/ do |count|
+  if count == "none" or count == 0
+    page.should have_no_css("#movielist tr")
+  else
+    page.should have_css("#movielist tr", :count => count == "all" ? 10 : count)
+  end
+end
+
